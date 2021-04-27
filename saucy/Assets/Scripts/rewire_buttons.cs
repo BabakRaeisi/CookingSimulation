@@ -17,7 +17,7 @@ public class rewire_buttons : MonoBehaviour
     [SerializeField]
     private InputField inp_food_name;
     [SerializeField]
-    private Button done_btn, reset_btn,  cart_btn;
+    private Button done_btn, reset_btn, delete_btn;
     [SerializeField]
     private Transform content_del, foodholder, scroll_Delete;
  
@@ -30,11 +30,9 @@ public class rewire_buttons : MonoBehaviour
         
         done_btn = GameObject.Find("done").GetComponent<Button>();
         reset_btn = GameObject.Find("reset_btn").GetComponent<Button>();
-      //  delete_btn = GameObject.Find("delete_key").GetComponent<Button>();
-        cart_btn = GameObject.Find("cart_btn").GetComponent<Button>();
-      
-      //  cart_btn.GetComponent<Button>().onClick.AddListener((() => Cart_scene()));
-        
+        delete_btn = GameObject.Find("delete_key").GetComponent<Button>();
+
+
         content_del = GameObject.Find("content_delete").GetComponent<Transform>();
         foodholder = GameObject.Find("foodholder").GetComponent<Transform>();
 
@@ -46,17 +44,104 @@ public class rewire_buttons : MonoBehaviour
     void Start()
     {
         inst = GameObject.Find("plate").GetComponent<instantiation>();
-       // delete_btn.GetComponent<Button>().onClick.AddListener((() => inst.activate_delete()));
+        delete_btn.GetComponent<Button>().onClick.AddListener((() => inst.activate_delete()));
 
         trashbin.SetActive(false);
         active_trash = false;
-        if (inst.foodlist.Count > 0)
-        {
-            cart_btn.GetComponent<Button>().onClick.AddListener((() => Cart_scene()));
-        }
+
 
     }
-   
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += Loadedscene;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= Loadedscene;
+    }
+
+    void Loadedscene(Scene scene, LoadSceneMode mode)
+    {
+
+        if (scene.name == "CVV2")
+        {
+           // inst = GameObject.Find("plate").GetComponent<instantiation>();
+           //
+           // done_btn = GameObject.Find("done").GetComponent<Button>();
+           // reset_btn = GameObject.Find("reset_btn").GetComponent<Button>();
+           // delete_btn = GameObject.Find("delete_key").GetComponent<Button>();
+
+
+           // content_del = GameObject.Find("content_delete").GetComponent<Transform>();
+           // foodholder = GameObject.Find("foodholder").GetComponent<Transform>();
+           //
+           // scroll_Delete = GameObject.Find("Viewport_del").GetComponent<Transform>();
+
+
+
+           // reset_btn.GetComponent<Button>().onClick.AddListener((() => inst.remove_all()));
+           // delete_btn.GetComponent<Button>().onClick.AddListener(delegate { activate_delete(); Debug.Log("well recieved"); });
+
+
+
+
+
+
+
+        }
+    }
+   //private void OnLevelWasLoaded(int level)
+   //
+   //  
+   //
+   // if(level==0)
+   // {
+   //       inst = GameObject.Find("plate").GetComponent<instantiation>();
+   //
+   //       done_btn = GameObject.Find("done").GetComponent<Button>();
+   //       reset_btn = GameObject.Find("reset_btn").GetComponent<Button>();
+   //       delete_btn = GameObject.Find("delete_key").GetComponent<Button>();
+   //
+   //
+   //       content_del = GameObject.Find("content_delete").GetComponent<Transform>();
+   //       foodholder = GameObject.Find("foodholder").GetComponent<Transform>();
+   //
+   //       scroll_Delete=GameObject.Find("Viewport_del").GetComponent<Transform>();
+   //
+   //
+   //       reset_btn.GetComponent<Button>().onClick.AddListener((() => inst.remove_all()));
+   //       delete_btn.GetComponent<Button>().onClick.AddListener((() => inst.activate_delete()));
+   //       done_btn.GetComponent<Button>().onClick.AddListener((() => inst.create_instnce = true));
+
+
+      //  if (foodholder.childCount > 0)
+      //    { 
+      //    delete_group_ar = new GameObject[foodholder.childCount];
+      //  
+      //    for (int i = 0; i < foodholder.childCount; i++)
+      //    {
+      //            if (content_del.Find(inst.ListIngred[i].ingred_name) == null)
+      //            {
+      //               
+      //                D_obj = Resources.Load("btn_D") as GameObject;
+      //                D_obj.transform.name = inst.ListIngred[i].ingred_name;
+      //                delete_group_ar[i] = Instantiate(D_obj, new Vector3(0, 0, 0), scroll_Delete.transform.rotation);
+      //                delete_group_ar[i].transform.SetParent(content_del);
+      //                delete_group_ar[i].GetComponent<Image>().sprite = Resources.Load<Sprite>("sprite/sprite_del/" + D_obj.transform.name);
+      //                delete_group_ar[i].GetComponent<Button>().onClick.AddListener((() => Delete_group(D_obj.transform.name)));
+      //            }
+      //    }
+      //        
+      // }
+        // Calorie = GameObject.Find("Calorie_Indicator").GetComponent<Text>();
+       //  price = GameObject.Find("Price_Indicator").GetComponent<Text>();
+
+           
+            
+     // }
+
+  //  }
    
  
     public void popup()
@@ -87,7 +172,7 @@ public class rewire_buttons : MonoBehaviour
 
     }
 
-   public void activate_delete()
+    void activate_delete()
     {
         if (inst.b_desrtroy == false) { inst.b_desrtroy = true; }
         else { inst.b_desrtroy = false; }
@@ -126,6 +211,4 @@ public class rewire_buttons : MonoBehaviour
         }
 
     }
-    public void Cart_scene()
-    { SceneManager.LoadScene("Cart"); }
 }

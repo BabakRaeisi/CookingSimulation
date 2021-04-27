@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4293594404279850887}
   - component: {fileID: 990364134469826425}
   - component: {fileID: 8473449065668347037}
-  - component: {fileID: 3110043508510804542}
   m_Layer: 5
   m_Name: C_obj
   m_TagString: Untagged
@@ -36,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 110, y: 110}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &990364134469826425
 CanvasRenderer:
@@ -76,15 +75,3 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3110043508510804542
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2355999700455981746}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8489745530929f94ba8f1ede26aa4c59, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
