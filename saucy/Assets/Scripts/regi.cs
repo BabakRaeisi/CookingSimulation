@@ -48,7 +48,7 @@ public class regi : MonoBehaviour
         UnityWebRequest uwr = UnityWebRequest.Post(url, form);
         yield return uwr.SendWebRequest();
 
-        if (uwr.isNetworkError)
+        if (uwr.result == UnityWebRequest.Result.ConnectionError)
         {
             Debug.Log("Error While Sending: " + uwr.error);
         }
@@ -128,7 +128,7 @@ public class regi : MonoBehaviour
         UnityWebRequest uwr = UnityWebRequest.Post(new_log, form);
         yield return uwr.SendWebRequest();
 
-        if (uwr.isNetworkError)
+        if (uwr.result == UnityWebRequest.Result.ConnectionError)
         {
             Debug.Log("Error While Sending: " + uwr.error);
             txt3.text = "00000000000000000000000000000000";

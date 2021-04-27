@@ -8,21 +8,32 @@ using SimpleJSON;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using RTLTMPro;
+using TMPro;
+using UnityEngine.Networking;
 
 public class instantiation : MonoBehaviour
 {
 
-    public Text calorie_txt, value;
-    public string food_name_tag;
+    public Text calorie_txt, value,cart_text ;
+
+
+    private cart_script cart; 
+
+
+
+    public string food_name_tag;             
     [SerializeField]
     private GameObject D_obj;
     [SerializeField]
     private scr_restoran n_scr_Restoran;
-    private done_script done; 
+    private done_script done;
+    private MoveScene move;
     public Transform foodHolder;
     [SerializeField]
     private Transform content_delete;
-
+    [SerializeField]
+    private Button cart_btn, pay_btn; 
     private rewire_buttons rewire;
 
     public int Saved_calorie;
@@ -33,14 +44,14 @@ public class instantiation : MonoBehaviour
     [SerializeField]
     private Transform scroll_Delete;    
     public GameObject[] delete_group_ar;
-
+    private Button profile_btn, close_profile; 
    
    
    // private Button delete_btn; 
     
     public bool create_instnce = false; 
     public bool b_desrtroy = false;
-    private Ingredient small_ingred; 
+   // public bool first_turn = true; 
 
     public  List<Ingredient> ListIngred = new List<Ingredient>();
     
@@ -54,6 +65,8 @@ public class instantiation : MonoBehaviour
     
     public void Awake()
     {
+       
+
         DontDestroyOnLoad(transform.gameObject);
         n_scr_Restoran = GameObject.Find("content").GetComponent<scr_restoran>();
         foodHolder = GameObject.Find("foodholder").GetComponent<Transform>();
@@ -61,7 +74,9 @@ public class instantiation : MonoBehaviour
         content_delete = GameObject.Find("content_delete").GetComponent<Transform>();
        
         done = GameObject.Find("done").GetComponent<done_script>();
-      
+        cart_text = GameObject.Find("cart_text").GetComponent<Text>();
+        cart_text.text = foodlist.Count.ToString();
+
     }
    
 
@@ -78,8 +93,20 @@ public class instantiation : MonoBehaviour
     void Loadedscene(Scene scene, LoadSceneMode mode)
     {
 
+        if (scene.name == "type_select" )
+        {
+            cart_text = GameObject.Find("cart_text").GetComponent<Text>();
+            cart_btn = GameObject.Find("cart_btn").GetComponent<Button>();
+            move = GetComponent<MoveScene>(); 
+            cart_text.text = foodlist.Count.ToString();
+
+
+
+            cart_btn.GetComponent<Button>().onClick.AddListener((() => move.Cart_scene()));
+        }
         if (scene.name == "CVV2")
         {
+           
             n_scr_Restoran = GameObject.Find("content").GetComponent<scr_restoran>();
             foodHolder = GameObject.Find("foodholder").GetComponent<Transform>();
             scroll_Delete = GameObject.Find("Scrollbar Vertical_del").GetComponent<Transform>();
@@ -88,18 +115,21 @@ public class instantiation : MonoBehaviour
             value = GameObject.Find("Price_Indicator").GetComponent<Text>();
             done = GameObject.Find("done").GetComponent<done_script>();
             rewire = GameObject.Find("Canvas").GetComponent<rewire_buttons>();
-          
+            cart_text = GameObject.Find("cart_text").GetComponent<Text>();
+            cart_text.text = foodlist.Count.ToString();
+
+            profile_btn = GameObject.Find("profile_btn").GetComponent<Button>();
+            profile_btn.GetComponent<Button>().onClick.AddListener((() => enable_profile_field())); 
+            close_profile = GameObject.Find("close_profile_btn").GetComponent<Button>();
+            close_profile.GetComponent<Button>().onClick.AddListener((() => enable_profile_field()));
             create_instnce = false;
 
 
-
-         
-
             calorie_txt.text = calorie.ToString(); 
 
-            value.text = price.ToString(); 
+            value.text = price.ToString();
 
-
+         
 
 
             if (foodHolder.childCount < 1)
@@ -107,9 +137,6 @@ public class instantiation : MonoBehaviour
                 int child_v = content_delete.childCount;
                 for (int chi = child_v - 1; chi >= 0; chi--)
                 {
-
-
-                    //  Destroy(content_delete.GetChild(chi).gameObject);
 
                     price = 0;
                     calorie = 0;
@@ -136,9 +163,64 @@ public class instantiation : MonoBehaviour
 
 
         }
-        
+        if (scene.name == "type_select")
+        {
+            cart_text = GameObject.Find("cart_text").GetComponent<Text>();
+            cart_btn = GameObject.Find("cart_btn").GetComponent<Button>();
+            move = GetComponent<MoveScene>();
+            cart_text.text = foodlist.Count.ToString();
+
+
+
+            cart_btn.GetComponent<Button>().onClick.AddListener((() => move.Cart_scene()));
+
+            if (foodHolder.childCount > 0)
+            {
+
+                int child_v = foodHolder.childCount;
+                for (int chi = child_v - 1; chi >= 0; chi--)
+                {
+
+
+                    Destroy(foodHolder.GetChild(chi).gameObject);
+
+
+                }
+            }
+        }
+
+        if (scene.name == "box_scene")
+        {
+
+
+            foodHolder.transform.position = new Vector3(-0.66f, 1.06f, -1.58f); 
+
+
+
+        }
+        if (scene.name == "Cart")
+        {
+
+            cart = GameObject.Find("Canvas").GetComponent<cart_script>(); 
+            pay_btn = GameObject.Find("pay_btn").GetComponent<Button>();
+            pay_btn.GetComponent<Button>().onClick.AddListener((() => finalize()));
+         
+
+
+        }
     }
 
+    void enable_profile_field()
+    {
+        if (create_instnce == false)
+        { create_instnce = true; }
+        else
+        {
+            create_instnce = false;
+        }
+
+
+    }
     void Start()
     {
      
@@ -160,7 +242,7 @@ public class instantiation : MonoBehaviour
         if (Input.GetMouseButtonUp(0) && b_desrtroy == true)
         { remove_me(); }
 
-        //    Debug.Log(IngredList.Count); 
+       
     }
 
     public void activate_delete()
@@ -169,14 +251,21 @@ public class instantiation : MonoBehaviour
         else { b_desrtroy = false; }
     }
 
-
+   
     void instance_of_food(string v2)
     {
+        
+      
+        GameObject food_obj = Resources.Load<GameObject>("prefab/Burger3D/" + v2);
+        Vector3 mousepos = Input.mousePosition;
+        Vector3 platepos = gameObject.transform.position + new Vector3(0 + 0.01f, 0);
+
+
+       
         try
         {
 
-            GameObject food_obj = Resources.Load<GameObject>("prefab/Burger3D/" + v2);
-            Vector3 mousepos = Input.mousePosition;
+
             //   mousepos.z = Random.Range(-2f, 2f);
             // mousepos.y = 2.9f;
             //   mousepos.x = Random.Range(-2f, 2f);
@@ -186,28 +275,54 @@ public class instantiation : MonoBehaviour
             //   }
             //   else {
 
+
+            if (food_obj.tag == "supreme_pizza_bread"|| food_obj.tag == "mini_pizza_bread" || food_obj.tag == "triangle_pizza_bread"|| food_obj.tag == "burger_bread")
+            {
+
+                PlayerPrefs.SetString("box_type" , food_obj.tag);
+                if (foodHolder.childCount > 0 && foodHolder.GetChild(0).gameObject.name.Substring(0, 6) != food_obj.name)
+                {
+                    deduct(foodHolder.GetChild(0).gameObject.name.Substring(0, 6));
+                    Destroy(foodHolder.GetChild(0).gameObject);
+                    Instantiate(food_obj, new Vector3(0, 0.1f, 0), Quaternion.identity, foodHolder);
+                    base_ingred(food_obj.name);
+                    create_delete_group(food_obj.name);
+                    create_instnce = true;
+                }
+
+                else if (foodHolder.childCount == 0)
+                {
+                    Instantiate(food_obj, new Vector3(0, 0.1f, 0), Quaternion.identity, foodHolder);
+                    base_ingred(food_obj.name);
+                    create_delete_group(food_obj.name);
+                    create_instnce = true; 
+                }
+                else { Debug.Log("nope"); }
+               
+            }
+        
+               
+            
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
 
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit) && food_obj.tag == "food_tag")
             {
-                if (hit.collider.tag == "food_tag" || hit.collider.tag == "plate_tag" || hit.collider.tag == "foodbase_tag" )
+                if (hit.collider.tag == "food_tag" || hit.collider.tag == "plate_tag" || hit.collider.tag == "supreme_pizza_bread" || hit.collider.tag == "mini_pizza_bread" || hit.collider.tag =="burger_bread")
                 {
 
                     // Debug.Log("turn is over");
                     // Debug.Log("number of keys and values" + food_dict.Count);
-                    Instantiate(food_obj, hit.point, Quaternion.Euler(-90, Random.Range(-180f, 180f), 0), foodHolder);
+                    Instantiate(food_obj, hit.point, Quaternion.Euler(0,Random.Range(0,180f), 0), foodHolder);
+                    
                     manage_ingred(food_obj.name);
                     create_delete_group(food_obj.name);
+                    Debug.Log("foodobj: "+ food_obj.name);
                   
                 }
             }
-            if (food_obj.tag == "foodbase_tag")
-            {
-                food_obj.transform.position = new Vector3(0, 0.3f, 0.17f); 
-
-            }
+           
 
 
         }
@@ -215,7 +330,31 @@ public class instantiation : MonoBehaviour
 
 
     }
+    bool base_exist = false; 
+    public void base_ingred(string name)
+    {
+        foreach (var item in ListIngred)
+        {
+            if (item.ingred_name == name)
+            {
+                item.ingred_amount = item.ingred_amount + 1;
+                base_exist = true;
+            }
+        }
+            if(base_exist == false)
+            {
+                Ingredient newbase = new Ingredient();
+                newbase.ingred_name = name;
+                newbase.ingred_amount = 1;
+                ListIngred.Add(newbase);
+            base_exist = true; 
 
+            }
+
+        base_exist = false; 
+        calculate(name);
+
+    }
     bool exist = false;
     public void manage_ingred(string name)
     {
@@ -249,19 +388,20 @@ public class instantiation : MonoBehaviour
 
     void calculate(string name)
     {
-        StreamReader reader = new StreamReader(path());
-        string data = reader.ReadToEnd();
-        JSONNode jdata = JSON.Parse(data);
+        
 
-        for (int i = 0; i <= data.Length; i++)
+        for (int i = 0; i < n_scr_Restoran.food_input_list.Count; i++)
         {
-            if (name == jdata[i]["food_id"].Value)
+            if (name == n_scr_Restoran.food_input_list[i].input_name)
             {
-                string str_cost = jdata[i]["cost"].Value;
-                decimal dec_cost = System.Convert.ToDecimal(str_cost);
-                price = price + (dec_cost);
+                Debug.Log("name : " + name + " list item name " + n_scr_Restoran.food_input_list[i].input_name); 
+                string str_cost = n_scr_Restoran.food_input_list[i].input_cost;
+                Debug.Log("strCost : "+ str_cost);
+               decimal dec_cost = System.Convert.ToDecimal(str_cost);
+               price = price + (dec_cost);
 
-                string str_calorie = jdata[i]["calorie"].Value;
+                string str_calorie = n_scr_Restoran.food_input_list[i].input_calorie;
+                Debug.Log("strCal : " + str_calorie);
                 int int_Calorie = System.Convert.ToInt16(str_calorie);
                 calorie = calorie + int_Calorie;
 
@@ -270,7 +410,7 @@ public class instantiation : MonoBehaviour
         }
 
 
-        reader.Close();
+     
 
         value.text = price.ToString();
         calorie_txt.text = calorie.ToString();
@@ -282,27 +422,25 @@ public class instantiation : MonoBehaviour
     public void deduct(string name)
     {
         
-        Debug.Log(name); 
-        StreamReader reader = new StreamReader(path());
-        string data = reader.ReadToEnd();
-        JSONNode jdata = JSON.Parse(data);
+   
+     
 
-        for (int i = 0; i <= data.Length; i++)
+        for (int i = 0; i <n_scr_Restoran.food_input_list.Count; i++)
         {
-            if (name == jdata[i]["food_id"].Value)
+            if (name == n_scr_Restoran.food_input_list[i].input_name)
             {
-                string str_cost = jdata[i]["cost"].Value;
+                string str_cost = n_scr_Restoran.food_input_list[i].input_cost;
                 decimal dec_cost = System.Convert.ToDecimal(str_cost);
                 price = price - (dec_cost);
 
-                string str_calorie = jdata[i]["calorie"].Value;
+                string str_calorie = n_scr_Restoran.food_input_list[i].input_calorie;
                 int int_Calorie = System.Convert.ToInt16(str_calorie);
                 calorie = calorie - int_Calorie;
 
 
             }
 
-            reader.Close();
+           
             value.text = price.ToString();
             calorie_txt.text = calorie.ToString();
         }
@@ -319,25 +457,25 @@ public class instantiation : MonoBehaviour
     {
         create_instnce = true; 
         ListInfo.Add(submit_info());
-        final_info.information = ListInfo.ToArray();
+      //  final_info.information = ListInfo.ToArray();
         Saved_calorie = calorie;
         Saved_price = price; 
 
        
-        StreamWriter writer = new StreamWriter(writepath());
-        writer.WriteLine("[");
-        foreach (var item in ListInfo)
-        {
-            writer.WriteLine("{" + '"' + "Calorie " + '"' + ":" + '"' + item.food_calorie + '"' + "," + '"' + "price " + '"' + ":" + '"' + item.food_price + '"' + "," + '"' + "name " + '"' + ":" + '"' + item.food_name + '"' + "}"+",");
-          
-        }
-        foreach (var item in ListIngred)
-        {
-            writer.WriteLine("{" + '"' + "food_id " + '"' + ":" + '"' + item.ingred_name + '"' + "," + '"' + " amount " + '"' + ":" + '"' + item.ingred_amount + '"' + "},");
-
-        }
-        writer.WriteLine("{}]");
-        writer.Close();
+      //  StreamWriter writer = new StreamWriter(writepath());
+      //  writer.WriteLine("[");
+      //  foreach (var item in ListInfo)
+      //  {
+      //      writer.WriteLine("{" + '"' + "Calorie " + '"' + ":" + '"' + item.food_calorie + '"' + "," + '"' + "price " + '"' + ":" + '"' + item.food_price + '"' + "," + '"' + "name " + '"' + ":" + '"' + item.food_name + '"' + "}"+",");
+      //    
+      //  }
+      //  foreach (var item in ListIngred)
+      //  {
+      //      writer.WriteLine("{" + '"' + "food_id " + '"' + ":" + '"' + item.ingred_name + '"' + "," + '"' + " amount " + '"' + ":" + '"' + item.ingred_amount + '"' + "},");
+      //
+      //  }
+      //  writer.WriteLine("{}]");
+      //  writer.Close();
         next_scene_foods();
     }
 
@@ -358,14 +496,16 @@ public class instantiation : MonoBehaviour
     {
        foodlist.Add(foodadder());
     }
-
+  
     Food foodadder()
     {
         Food newfood = new Food();
 
         newfood.foodname = done.inp_food_name.text;
-        newfood.foodprice = price.ToString(); 
-
+        newfood.foodprice = price.ToString();
+        newfood.food_ingred = ListIngred.ToArray();
+        newfood.foodcalorie = calorie_txt.text;
+        newfood.foodamount = 1.ToString(); 
         return newfood; 
 
     }
@@ -374,17 +514,13 @@ public class instantiation : MonoBehaviour
 
 
     #region jsonpath
-    public string writepath()
-    {
-        string str_path = Path.Combine(Application.dataPath, "foodInscene.json");
-        return str_path;
-    }
+  //  public string writepath()
+  //  {
+  //      string str_path = Path.Combine(Application.dataPath, "foodInscene.json");
+  //      return str_path;
+  //  }
 
-    public string path()
-    {
-        string str_path = Path.Combine(Application.dataPath, "json.json");
-        return str_path;
-    }
+    
 
     #endregion
 
@@ -397,13 +533,16 @@ public class instantiation : MonoBehaviour
   
     void create_delete_group(string spritecode)
      {
+        Debug.Log("group_delete"); 
          delete_group_ar = new GameObject[foodHolder.childCount];
         
          for (int i = 0; i <= ListIngred.Count; i++)
          {
-             if (content_delete.Find(spritecode+"(Clone)") == null)
+            Debug.Log("group_delete_ in For");
+            if (content_delete.Find(spritecode+"(Clone)") == null)
              {
-                 D_obj = Resources.Load("btn_D") as GameObject;
+                Debug.Log("group_delete");
+                D_obj = Resources.Load("btn_D") as GameObject;
                  D_obj.transform.name = spritecode; 
                  delete_group_ar[i] = Instantiate(D_obj, new Vector3(0, 0, 0), scroll_Delete.transform.rotation);
                  delete_group_ar[i].transform.SetParent(content_delete);
@@ -461,14 +600,17 @@ public class instantiation : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit))
         {
-            if (hit.collider.tag == "food_tag"|| hit.collider.tag == "foodbase_tag")
+            if (hit.collider.tag == "food_tag"|| hit.collider.tag == "foodbase_tag"|| hit.collider.tag == "supreme_pizza_bread" || hit.collider.tag == "mini_pizza_bread" || hit.collider.tag == "triangle_pizza_bread" || hit.collider.tag == "burger_bread")
             {
                 try
                 {
 
-
+                   
                     Destroy(hit.transform.gameObject);
+                    
                     string name = hit.transform.name.Substring(0, 6);
+
+                    
                 
                     foreach (var item in ListIngred)
                     {
@@ -539,6 +681,69 @@ public class instantiation : MonoBehaviour
         }
     }
 
+
+    public void finalize()
+    {
+
+        final(); 
+
+    }
+    public void final()
+    {
+        
+        final_info.foods = foodlist.ToArray(); 
+       final_info.address = GameObject.Find("adress_input").GetComponent<TMP_InputField>().text;
+        final_info.cordinates = cart.location; 
+        final_info.total = GameObject.Find("total_text").GetComponent<Text>().text;
+        StartCoroutine(send_panel(url_sender));
+
+    }
+    [SerializeField]
+    private string url_sender = "https://smartbnd.ir/api/v1/saveRequest";
+
+    IEnumerator send_panel(string url)
+    {
+        // int number = 09155151515;
+        Debug.Log("starting");
+        WWWForm form = new WWWForm();
+
+        form.AddField("project_name", "gargot");//ok
+        form.AddField("product_name", "username.text");//food name
+        form.AddField("name", foodlist[0].foodname);//
+        form.AddField("sub_category", "username.text");//
+        form.AddField("product_image", foodlist[0].foodImage);
+        form.AddField("cost", cart.total_amount.ToString());
+        form.AddField("calary", foodlist[0].foodcalorie);
+        form.AddField("product_detail", foodlist[0].food_ingred.ToString());
+        form.AddField("request_name", "food request");//ok
+        form.AddField("organ_name", "username.text");
+        form.AddField("user_id", PlayerPrefs.GetString("phone_number"));//number
+        form.AddField("detail", foodlist[0].foodamount  );//address
+        form.AddField("x_loc", "26");
+        form.AddField("y_loc", "27");
+        form.AddField(" send_address", "GameObject.Find(adress_input).GetComponent<TMP_InputField>().text");
+
+
+
+
+        UnityWebRequest uu = UnityWebRequest.Post(url, form);
+        yield return uu.SendWebRequest();
+        if (uu.result == UnityWebRequest.Result.ConnectionError)
+        {
+            Debug.Log("not network");
+        }
+        else
+        {
+            Debug.Log("sent");
+
+            Debug.Log("results are :" + uu.result.ToString()); 
+
+
+
+        }
+
+    }
+
     #endregion
 
     #endregion
@@ -561,8 +766,18 @@ public class Ingredient
 [System.Serializable]
 public class Food
 {
+
     public string foodname;
-    public string foodprice; 
+    public string foodprice;
+
+    public Ingredient[] food_ingred;
+    public string foodImage;
+    public string foodcalorie; 
+    public string foodamount; 
+
+
+ 
+
 }
 
 
@@ -577,7 +792,10 @@ public class Info
 [System.Serializable]
 public class FinalInfo
 {
-    public Info[] information;
+    public Food[] foods;
+    public string address;
+    public string cordinates; 
+    public string total; 
 
 }
 

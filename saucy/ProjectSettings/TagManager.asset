@@ -7,6 +7,12 @@ TagManager:
   - plate_tag
   - food_tag
   - foodbase_tag
+  - pizza_box
+  - supreme_pizza_bread
+  - mini_pizza_bread
+  - burger_bread
+  - triangle_pizza_bread
+  - secondary camera
   layers:
   - Default
   - TransparentFX
